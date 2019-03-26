@@ -1,0 +1,156 @@
+<canvas id='c'></canvas>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+    }
+
+</style>
+<script>
+    var cnv = document.getElementById('c');
+    cnv.width = window.innerWidth;
+    cnv.height = window.innerHeight;
+    var ctx = cnv.getContext('2d');
+    
+    var score = -1;
+
+    function clear() {
+        ctx.fillStyle = 'rgb(30, 30, 30)';
+        ctx.fillRect(0, 0, cnv.width, cnv.height);
+    }
+
+    function rand(min, max) {
+        var rand = Math.floor(min + Math.random() * (max + 1 - min));
+        return rand;
+    }
+
+    var player = {
+        x: cnv.width / 2,
+        y: 50,
+
+        Vspeed: 1,
+        Hspeed: 0,
+
+        fuel: 100,
+    }
+
+    var plat = {
+        x: 0,
+        y: 900,
+    }
+
+    window.onkeydown = function(event) {
+        if (event.keyCode == 38 && player.fuel > 0) {
+
+            if (player.Vspeed > -3) {
+                player.Vspeed -= 0.2;
+            }
+
+            player.fuel--;
+            ctx.fillStyle = 'orange';
+            ctx.fillRect(player.x - 10, player.y + 20, 20, 15);
+        }
+
+        if (event.keyCode == 37 && player.fuel > 0) {
+            player.Hspeed -= 0.2;
+            player.fuel--;
+            ctx.fillStyle = 'orange';
+            ctx.fillRect(player.x + 20, player.y + 5, 20, 15);
+        }
+
+        if (event.keyCode == 39 && player.fuel > 0) {
+            player.Hspeed += 0.2;
+            player.fuel--;
+            ctx.fillStyle = 'orange';
+            ctx.fillRect(player.x - 40, player.y + 5, 20, 15);
+        }
+
+    }
+
+    function genPlatform() {
+        plat.x = rand(0, cnv.width - 100);
+        plat.y = rand(300, cnv.height - 10);
+        score++;
+    }
+
+    genPlatform();
+
+    function dead() {
+        genPlatform();
+        player.fuel = 100;
+        player.x = cnv.width / 2;
+        player.y = 50;
+        player.Vspeed = 0;
+        score = 0;
+    }
+
+    function drawPlayer() {
+        clear();  
+        
+        player.x += player.Hspeed;
+        player.y += player.Vspeed;
+
+        if (player.y + 60 >= plat.y && player.x - 30 > plat.x && player.x + 30 < plat.x + 100) {
+            player.Vspeed = 0;
+            if (player.y + 60 > plat.y + 0.4) {
+                dead();
+            } else {
+                if(player.fuel < 100){
+                player.fuel+=0.2;
+                }
+            }
+        }
+        
+        if(player.y < plat.y-65 && player.x-30 > plat.x && player.x+30 < plat.x+100 && player.fuel >= 93){
+            genPlatform();
+        }
+        
+        
+
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0,0,cnv.width*(player.fuel/100), 10);
+
+        if (player.Vspeed < 8 && player.y + 60 < plat.y) {
+            player.Vspeed += 0.02;
+        }
+
+        if (player.Hspeed < 0) {
+            player.Hspeed += 0.01;
+        }
+
+        if (player.Hspeed > 0) {
+            player.Hspeed -= 0.01;
+        }
+
+        ctx.fillRect(player.x - 20, player.y - 20, 40, 40);
+        ctx.fillRect(plat.x, plat.y, 100, 5);
+        //legs
+        ctx.strokeStyle = 'white';
+        ctx.beginPath();
+        ctx.moveTo(player.x, player.y);
+        ctx.lineTo(player.x + 30, player.y + 60);
+        ctx.moveTo(player.x, player.y);
+        ctx.lineTo(player.x - 30, player.y + 60);
+        ctx.stroke();
+        //flag
+        ctx.beginPath();
+        ctx.moveTo(plat.x + 20, plat.y);
+        ctx.lineTo(plat.x + 20, plat.y - 200);
+        ctx.lineTo(plat.x + 90, plat.y - 180);
+        ctx.lineTo(plat.x + 20, plat.y - 150);
+        ctx.fill();
+        ctx.stroke();
+        
+        //score
+        ctx.beginPath();
+        ctx.fillStyle = 'rgb(255, 255, 255, 0.1)';
+        ctx.arc(cnv.width/2, cnv.height/2, 50, 0, Math.PI*2, 1);
+        ctx.fill();
+        ctx.font = '60px Monospace';
+        ctx.fillText(score, cnv.width/2-15, cnv.height/2+15);
+    }
+
+    clear();
+    setInterval(drawPlayer, 1000 / 60);
+
+</script>
